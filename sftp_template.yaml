@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: some-sftp-server
+Description: abierto-sftp-server
 Parameters:
   HostedZoneIdParam:
     Type: String
@@ -14,7 +14,7 @@ Resources:
       EndpointType: PUBLIC
       Tags:
         - Key: Application
-          Value: some-sftp-servver
+          Value: abierto-sftp-server
   SFTPServerDNSRecord:
     Type: AWS::Route53::RecordSet
     Properties:
@@ -37,7 +37,7 @@ Resources:
         RestrictPublicBuckets: true
       Tags:
         - Key: Application
-          Value: some-sftp-servver
+          Value: abierto-sftp-server
   SFTPUserRole:
     Type: AWS::IAM::Role
     Properties:
@@ -85,8 +85,8 @@ Resources:
     Type: AWS::Transfer::User
     Properties:
       ServerId: !GetAtt SFTPServer.ServerId
-      UserName: john
-      HomeDirectory: !Sub /${SFTPServerS3Bucket}/home/john
+      UserName: abiertoadmin
+      HomeDirectory: !Sub /${SFTPServerS3Bucket}/home/abiertoadmin
       Policy: |
         {
           "Version": "2012-10-17",
@@ -121,7 +121,7 @@ Resources:
           }
       Role: !GetAtt SFTPUserRole.Arn
       SshPublicKeys:
-        - ssh-rsa AAAAB3NzaC1********************************cMNTZKrQTDjrpvCJ83w== john.doe@gmail.com
+        - ssh-rsa AAAAB3NzaC1********************************cMNTZKrQTDjrpvCJ83w== abiertoadmin.doe@gmail.com
       Tags:
         - Key: Application
-          Value: some-sftp-server
+          Value: abierto-sftp-server

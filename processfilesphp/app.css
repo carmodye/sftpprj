@@ -1,0 +1,83 @@
+/*
+ * Copyright 2011-2022 Abierto Networks, LLC.
+ * All rights reserved.
+ */
+
+#slides,
+#store-data,
+#survey {
+    height: 450px;
+}
+
+table {
+    margin: 0 10px;
+}
+
+thead tr {
+    height: 30px;
+}
+
+input[type="file"] {
+    line-height: inherit;
+}
+
+#survey td {
+    padding-bottom: 10px;
+}
+
+.button-wrapper {
+    margin: 20px 0;
+}
+
+.button {
+    border: none;
+    background-color: #af1f2d;
+    color: white;
+    padding: 5px 10px;
+    margin: 0 10px;
+}
+
+.messagebox {
+    margin-top: 10px;
+}
+
+.messagebox p {
+    padding: 5px 10px;
+}
+
+input[name="video-title"],
+input.date {
+    margin-bottom: 0!important;
+}
+
+input.date {
+    width: 90px;
+    margin-left: 10px;
+}
+
+input.cancel {
+    margin-left: 10px;
+}
+
+input.question,
+input.message,
+input.alert {
+    margin: 0!important;
+    width: 100%;
+}
+
+input.enable {
+    margin-left: 10px;
+}
+
+tr.header {
+    height: 10px;
+}
+
+tr.enablerow {
+    height: 30px;
+}
+
+#store-data .button-wrapper {
+    margin: 15px 0;
+}

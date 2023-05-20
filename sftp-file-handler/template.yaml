@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: |
+  sftp-file-handler
+  Sample SAM Template for sftp-file-handler
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+Resources:
+  SFTPBUCKET:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-sftpbucke-${AWS::AccountId}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: alias/aws/s3
+      PublicAccessBlockConfiguration:
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  SFTPBUCKETBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SFTPBUCKET
+      PolicyDocument:
+        Id: RequireEncryptionInTransit
+        Version: '2012-10-17'
+        Statement:
+          - Principal: '*'
+            Action: '*'
+            Effect: Deny
+            Resource:
+              - !GetAtt SFTPBUCKET.Arn
+              - !Sub ${SFTPBUCKET.Arn}/*
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+  SFTPFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: SFTPFunction
+      CodeUri: src/SFTPFunction
+      Handler: handler.handler
+      Runtime: python3.9
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Events:
+        SFTPBUCKET:
+          Type: S3
+          Properties:
+            Bucket: !Ref SFTPBUCKET
+            Events:
+              - s3:ObjectCreated:*
+              - s3:ObjectRemoved:*
+  SFTPFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${SFTPFunction}
+Outputs:
+  SFTPFileHandleFunction:
+    Description: Handle SFTP Files Function ARN
+    Value: !GetAtt SFTPFunction.Arn
