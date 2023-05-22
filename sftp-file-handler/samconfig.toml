@@ -3,9 +3,9 @@ version = 0.1
 [default.deploy]
 [default.deploy.parameters]
 stack_name = "sftp-file-handler"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1n7mvj5hdydn"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-26q5xlsp73fe"
 s3_prefix = "sftp-file-handler"
 region = "us-east-1"
-profile = "aws-support"
+profile = "ed-ab"
 capabilities = "CAPABILITY_IAM"
 image_repositories = []

@@ -8,6 +8,13 @@ Globals:
     Timeout: 3
     MemorySize: 128
 Resources:
+  SFTPServer:
+    Type: AWS::Transfer::Server
+    Properties:
+      EndpointType: PUBLIC
+      Tags:
+        - Key: Application
+          Value: abierto-sftp-server
   SFTPBUCKET:
     Type: AWS::S3::Bucket
     Properties:
@@ -62,6 +69,93 @@ Resources:
     DeletionPolicy: Delete
     Properties:
       LogGroupName: !Sub /aws/lambda/${SFTPFunction}
+  SFTPUserRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - transfer.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: S3FullAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListAllMyBuckets
+                  - s3:GetBucketLocation
+                Resource: '*'
+        - PolicyName: AllowListingOfUserFolder
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !GetAtt SFTPBUCKET.Arn
+        - PolicyName: HomeDirObjectAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:DeleteObject
+                  - s3:DeleteObjectVersion
+                Resource: !Sub ${SFTPBUCKET.Arn}/*
+  TestUser:
+    Type: AWS::Transfer::User
+    Properties:
+      ServerId: !GetAtt SFTPServer.ServerId
+      UserName: abiertoadmin
+      HomeDirectory: !Sub /${SFTPBUCKET}/home/abiertoadmin
+      Policy: |
+        {
+          "Version": "2012-10-17",
+                  "Statement": [
+                      {
+                          "Sid": "AllowListingOfUserFolder",
+                          "Effect": "Allow",
+                          "Action": "s3:ListBucket",
+                          "Resource": "arn:aws:s3:::${transfer:HomeBucket}",
+                          "Condition": {
+                              "StringLike": {
+                                  "s3:prefix": [
+                                      "home/${transfer:UserName}/*",
+                                      "home/${transfer:UserName}"
+                                  ]
+                              }
+                          }
+                      },
+                      {
+                          "Sid": "HomeDirObjectAccess",
+                          "Effect": "Allow",
+                          "Action": [
+                              "s3:PutObject",
+                              "s3:GetObject",
+                              "s3:GetObjectVersion",
+                              "s3:DeleteObject",
+                              "s3:DeleteObjectVersion"
+                          ],
+                          "Resource": "arn:aws:s3:::${transfer:HomeDirectory}*"
+                      }
+                  ]
+          }
+      Role: !GetAtt SFTPUserRole.Arn
+      SshPublicKeys:
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCzqxkpeck8t0g/BULzhWk1u1Q4bILPv2JZE6zy+9KLX8bDv7RahgzQ4HMJJewdRNcvLCk9Fkp3uJi+RJN8qu2Lkea3jZXR6ToH4eVTQa0JPp1/dJFtlRgx3Wx+n/W8urMBCBrjfneEmsNViuFO+yM5KaCG6R5FRNWxHU33DhJ4GbTRc9Xbhfo0BVrjphGgfit6lyuU5Sg1LsMLsHKhp8HV0rgdM0Gkr0/0HqmlZuSDiex3fViHKBRVjd4myrfDHuXwyLu9aa8DOPgHYqQUPL0sd91S0Q0KmDb2p0cJ93yTpvpmlY0ZklYmesGiQETJmVwEO7U2plaGKyyWpPsKX+2vmaOCIjLQlBGEiCr3atIFwJX5j7kHF3GeV8hWVNlC9KhcT2X20EUPwueHEoDFeazqG3oREbxilNve/Rr8GylieV5xvJvldQN3LmTM9M70vkUZ4NzmBpceJsCu4I2oJNXSpbTEMGMz1zbl7W7/7Jaf9zBlSRJCy4NakbPGREFPxO/z8161WDyhV2mfsm8eJu4fPVIPI5XrMuD+4DTRFo1KVVkydmLqObHC8ulIRiDRXazVV62o+gFbRA7zqGcV6f05FfQCbnjPmEV4++OUN0Q/QxH2nQDPjJEVv2mHgjyk4GcJaP849hVm/YFwcc3HMvHCUqFV9weUD7r4WFUJFQoVw== carmodye@DESKTOP-ED-WORK
+      Tags:
+        - Key: Application
+          Value: abierto-sftp-server
 Outputs:
   SFTPFileHandleFunction:
     Description: Handle SFTP Files Function ARN
