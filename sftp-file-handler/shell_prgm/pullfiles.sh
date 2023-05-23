@@ -1,0 +1,1 @@
+sftp -i ../sftp-file-handler/test_user  abiertoadmin@s-86d18ea269fc4ef49.server.transfer.us-east-1.amazonaws.com:\*
